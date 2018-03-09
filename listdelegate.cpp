@@ -1,62 +1,9 @@
 #include "listdata.h"
-#include "listeditor.h"
 #include "listdelegate.h"
 
 #include <QtGui>
 #include <QDebug>
 #include <QVariant>
-
-QWidget *ListDelegate::createEditor(QWidget *parent, 
-		const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-	if (qVariantCanConvert<BookItem>(index.data(PIXMAP))) {
-        BookItem item = qVariantValue<BookItem>(index.data(PIXMAP));
-		ListEditor *widget = new ListEditor(item, parent);
-		return widget;
-	} else {
-	    return QStyledItemDelegate::createEditor(parent, option, index);
-	}
-}
-
-void ListDelegate::paint(QPainter *painter, 
-		const QStyleOptionViewItem &option, const QModelIndex &index) const
-{
-    if (qVariantCanConvert<BookItem>(index.data(PIXMAP))) {
-        BookItem item = qVariantValue<BookItem>(index.data(PIXMAP));
-		item.paint(painter, option.rect);
-		int startX = option.rect.x();
-		int endX = option.rect.x() + option.rect.width();
-		int y = option.rect.y() + option.rect.height() - 5;
-		painter->drawLine(QPoint(startX, y), QPoint(endX, y));
-	} else {
-		QStyledItemDelegate::paint(painter, option, index);
-	}
-}
-
-void ListDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
-{
-    ListEditor *widget = qobject_cast<ListEditor *>(editor);
-    if (widget) {
-        if (qVariantCanConvert<BookItem>(index.data(PIXMAP))) {
-            BookItem item = qVariantValue<BookItem>(index.data(PIXMAP));
-            widget->setBookItem(item);
-        }
-    } else {
-        QStyledItemDelegate::setEditorData(editor, index);
-    }
-}
-
-void ListDelegate::setModelData(QWidget *editor, 
-		QAbstractItemModel *model, const QModelIndex &index) const
-{
-    ListEditor *widget = qobject_cast<ListEditor *>(editor);
-    if (widget) {
-        BookItem book = widget->getBookItem();
-		model->setData(index, qVariantFromValue(book), PIXMAP);
-    } else {
-        QStyledItemDelegate::setModelData(editor, model, index);
-    }
-}
 
 QSize ListDelegate::sizeHint(const QStyleOptionViewItem &/*option*/, 
 		const QModelIndex &/*index*/) const
@@ -64,10 +11,57 @@ QSize ListDelegate::sizeHint(const QStyleOptionViewItem &/*option*/,
     return QSize(400, 150);
 }
 
-void ListDelegate::updateEditorGeometry(QWidget *editor, 
+void ListDelegate::paint(QPainter *painter, 
 		const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-	//qDebug() << "ListDelegate" << __func__ << "update Editor Geometry !!!";
-    QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+	BookItem item = qVariantValue<BookItem>(index.data(PIXMAP));
+	if (item.isValid()) {
+		int startX = option.rect.x();
+		int endX = option.rect.x() + option.rect.width();
+		int y = option.rect.y() + option.rect.height() - 5;
+		painter->drawLine(QPoint(startX, y), QPoint(endX, y));
+		
+		QPixmap pix(item.getData()["pixmap"]);
+	#if 0
+		QPoint start(option.rect.width() - pix.rect().width() - 5, 
+				option.rect.y() + option.rect.height() - pix.rect().height() - 5 );	
+	#else
+		QPoint start(option.rect.width() - pix.rect().width() - 5, option.rect.y());	
+	#endif
+		painter->drawPixmap(QRect(start, pix.size()), item.getData()["pixmap"]);
+	}
+}
+
+
+bool ListDelegate::editorEvent(QEvent *event, QAbstractItemModel *m, 
+		const QStyleOptionViewItem &option, const QModelIndex &index)
+{
+	QMouseEvent *mouseEvent = (QMouseEvent *)event;
+	if (pixmapContains(option.rect, mouseEvent->pos())) {
+		QStandardItemModel *model = (QStandardItemModel *)m;
+		if (!mouseEvent && !model)
+			return false;
+		
+		QStandardItem *item = model->item(index.row(), index.column());
+		if (event->type() == QEvent::MouseButtonPress ) {
+			item->setData(true, PRESSED);
+			emit operateClicked(*item);
+		} else if (event->type() == QEvent::MouseButtonRelease ) {
+			item->setData(false, PRESSED);
+			emit operateClicked(*item);
+		}
+
+		return true;
+	}
+	return QStyledItemDelegate::editorEvent(event, m, option, index);
+}
+
+bool ListDelegate::pixmapContains(const QRect &rct, const QPoint &point)
+{
+	qDebug() << "rect" << rct << "point" << point;
+	QSize size(55, 55);
+	QPoint start(rct.width() - size.width() - 5, rct.y());
+	QRect pixmapRect(start, QSize(55, 55));
+	return pixmapRect.contains(point);
 }
 

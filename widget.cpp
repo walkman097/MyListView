@@ -16,6 +16,7 @@ Widget::Widget(QWidget *parent)
     listView->setModel(model);
     initModel();
     layout->addWidget(listView);
+	connect(delegate, SIGNAL(operateClicked(const QStandardItem &)), this, SLOT(operateClicked(const  QStandardItem &)));
 }
 
 Widget::~Widget()
@@ -24,24 +25,9 @@ Widget::~Widget()
 	model = NULL;
 }
 
-void Widget::update()
-{
-	QList<QStandardItem *> items = model->takeColumn(0);
-	for (int i = 0; i < items.size(); i++) {
-		QMap<QString, QString> map;
-		map.insert("title", "Jindi");
-		map.insert("content", "Fuck");
-		map.insert("pixmap", "images/editor.png");
-		BookItem book;
-		book.setData(map);
-		items[i]->setData(qVariantFromValue(book), PIXMAP);
-		model->setItem(i, items[i]);
-	}
-}
-
 void Widget::initModel()
 {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         QStandardItem *item = new QStandardItem;
 		QMap<QString, QString> map;
 		map.insert("title", "Jindi");
@@ -52,5 +38,23 @@ void Widget::initModel()
 		item->setData(qVariantFromValue(book), PIXMAP);
 		model->setItem(i, item);
     }
+}
+
+void Widget::operateClicked(const QStandardItem &item)
+{
+	BookItem book;
+	QMap<QString, QString> map;
+	if (item.data(PRESSED).toBool()) {
+		map.insert("title", "Jindi");
+		map.insert("content", "Fuck");
+		map.insert("pixmap", "images/editor.png");
+		book.setData(map);
+	} else {
+		map.insert("title", "Jindi");
+		map.insert("content", "Fuck");
+		map.insert("pixmap", "images/head.png");
+		book.setData(map);
+	}
+	model->setData(item.index(), qVariantFromValue(book), PIXMAP);
 }
 

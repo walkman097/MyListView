@@ -18,13 +18,11 @@ QT += widgets \
 
 # Input
 HEADERS += listdelegate.h \
-		   listeditor.h \
 		   listdata.h \
 		   widget.h \
 
 SOURCES += main.cpp \
 		   listdelegate.cpp\ 
-		   listeditor.cpp \
 		   listdata.cpp \ 
 		   widget.cpp \ 
 

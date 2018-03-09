@@ -7,36 +7,26 @@ BookItem::BookItem()
 
 void BookItem::clear()
 {
-	title.clear();
-	pixmap.clear();
-	content.clear();
 }
 
 void BookItem::setData(const QMap<QString, QString> &map)
 {
-	title = map.value("title");
-	pixmap = map.value("pixmap");
-	content = map.value("content");
     this->map = map;
 }
 
 bool BookItem::operator == (const BookItem &other) const
 {
-	return title == other.title &&
-		pixmap == other.pixmap &&
-		content == other.content;
+	return map == other.map;
 }
 
 void BookItem::operator = (const BookItem &other)
 {
-	title = other.title;
-	pixmap = other.pixmap;
-	content = other.content;
+	map = other.map;
 }
 
 bool BookItem::isValid()
 {
-    return !title.isEmpty();
+    return !map.isEmpty();
 }
 
 const QMap<QString, QString> BookItem::getData() const
@@ -46,8 +36,8 @@ const QMap<QString, QString> BookItem::getData() const
 
 void BookItem::paint(QPainter *painter, const QRect &rect)
 {
-	//qDebug() << "BookItem" << __func__ << "rect" << rect << "pix" << pixmap;
-	QPixmap pix(pixmap);
-	painter->drawPixmap(rect, pix);	
+	QPixmap pix(map["pixmap"]);
+	//qDebug() << "BookItem" << __func__ << "rect" << rect << "pix" << map["pixmap"];
+	painter->drawPixmap(rect, pix);
 }
 

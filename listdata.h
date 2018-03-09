@@ -21,9 +21,6 @@ public:
     bool operator == (const BookItem &other) const;
 
 private:
-	QString title;
-	QString pixmap;
-	QString content;
     QMap<QString, QString> map;
 };
 

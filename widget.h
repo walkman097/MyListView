@@ -12,10 +12,11 @@ public:
     Widget(QWidget *parent = 0);
     ~Widget();
 	
-	void update();
-
 private:
     void initModel();
+
+private slots:
+	void operateClicked(const QStandardItem &);
 
 private:
     QListView *listView;
